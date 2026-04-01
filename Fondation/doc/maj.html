@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>maj.php – Système de mise à jour RSS (V18)</title>
+</head>
+<body>
+
+<h1>Système de mise à jour RSS<br>Version 18 – Parsers, fusions, stabilité et exécution automatique</h1>
+
+<p>
+Ce document décrit le fonctionnement complet du système de mise à jour d’iActu V18.  
+Il couvre les quatre scripts principaux :
+</p>
+
+<ul>
+<li><strong>maj.php</strong> – Lanceur HTTP des parsers RSS ;</li>
+<li><strong>maj_cli.php</strong> – Exécution CLI des parsers RSS ;</li>
+<li><strong>maj_fusion.php</strong> – Lanceur HTTP des fusions RSS ;</li>
+<li><strong>maj_fusion_cli.php</strong> – Exécution CLI des fusions RSS.</li>
+</ul>
+
+<p>
+Ces scripts sont déclenchés automatiquement par les crontabs toutes les 10 minutes,  
+et peuvent également être lancés en fallback par les pages HTML si les crons ne se sont pas exécutés.
+</p>
+
+<hr>
+
+<h2>1. Rôle général du système de mise à jour</h2>
+
+<p>
+Le système de mise à jour V18 assure :
+</p>
+
+<ul>
+<li>le téléchargement et parsing de plus de 150 flux RSS/Atom ;</li>
+<li>la fusion des flux par catégories (Technologie, Jeux, Apple, Sciences…) ;</li>
+<li>la génération des pages HTML quotidiennes ;</li>
+<li>la gestion des caches, locks, tempos et TTL ;</li>
+<li>la stabilité globale du système même en cas de surcharge ou d’erreurs réseau.</li>
+</ul>
+
+<p>
+Il fonctionne en deux étapes :
+</p>
+
+<ol>
+<li><strong>maj_cli.php</strong> → télécharge et normalise tous les flux RSS ;</li>
+<li><strong>maj_fusion_cli.php</strong> → fusionne les flux par catégories.</li>
+</ol>
+
+<p>
+Les versions HTTP (<code>maj.php</code> et <code>maj_fusion.php</code>) ne font que lancer les versions CLI en arrière‑plan.
+</p>
+
+<hr>
+
+<h2>2. maj.php – Lanceur HTTP des parsers RSS</h2>
+
+<p>
+Le script <strong>maj.php</strong> est appelé par les pages HTML lorsque :
+</p>
+
+<ul>
+<li>le cache est trop ancien ;</li>
+<li>le fichier du jour n’existe pas ;</li>
+<li>le système détecte un besoin de rafraîchissement forcé.</li>
+</ul>
+
+<p>
+Son rôle est simple :
+</p>
+
+<ul>
+<li>si exécuté en HTTP → lance <code>maj_cli.php</code> en tâche de fond ;</li>
+<li>si exécuté en CLI → délègue directement à <code>maj_cli.php</code>.</li>
+</ul>
+
+<p>
+Il renvoie systématiquement un code HTTP <strong>204</strong> (no content).
+</p>
+
+<hr>
+
+<h2>3. maj_cli.php – Exécution CLI des parsers RSS</h2>
+
+<p>
+Le script <strong>maj_cli.php</strong> est le cœur du système de mise à jour.  
+Il exécute l’ensemble des parsers RSS définis dans la configuration.
+</p>
+
+<h3>3.1 Initialisation</h3>
+
+<ul>
+<li>création d’un fichier <code>maj_tempo</code> ;</li>
+<li>chargement des modules :
+  <ul>
+    <li><code>job.php</code> – gestion des jobs ;</li>
+    <li><code>lit_rss.php</code> – parser RSS V18 ;</li>
+    <li><code>fusion_rss.php</code> – fusion interne (utilisée par certains jobs).</li>
+  </ul>
+</li>
+<li>génération d’un <code>$max</code> aléatoire (20–40 items).</li>
+</ul>
+
+<h3>3.2 Construction des jobs</h3>
+
+<p>
+Le script construit un tableau de plus de 150 jobs RSS, répartis par catégories :
+</p>
+
+<ul>
+<li>Technologie (principaux + autres + english) ;</li>
+<li>Apple (FR + autres + english) ;</li>
+<li>Jeux (FR + autres + english) ;</li>
+<li>Linux ;</li>
+<li>Réalité virtuelle ;</li>
+<li>Infos France ;</li>
+<li>Infos Monde ;</li>
+<li>Sciences (FR + autres + english) ;</li>
+<li>Insolites ;</li>
+<li>Cinéma/TV ;</li>
+<li>Sports ;</li>
+<li>Infos English.</li>
+</ul>
+
+<p>
+Chaque job appelle la fonction :
+</p>
+
+<pre><code>parse($titre, $slug, $categorie, $prefixe, $url, $min, $max)</code></pre>
+
+<h3>3.3 Exécution</h3>
+
+<ul>
+<li>mélange aléatoire des jobs (<code>shuffle()</code>) ;</li>
+<li>exécution séquentielle via <code>job_call()</code> ;</li>
+<li>gestion automatique des erreurs, TTL, locks et écritures atomiques.</li>
+</ul>
+
+<hr>
+
+<h2>4. maj_fusion.php – Lanceur HTTP des fusions RSS</h2>
+
+<p>
+Le script <strong>maj_fusion.php</strong> fonctionne exactement comme <code>maj.php</code>,  
+mais pour les fusions RSS.
+</p>
+
+<p>
+Il lance en arrière‑plan :
+</p>
+
+<pre><code>maj_fusion_cli.php</code></pre>
+
+<p>
+et renvoie un code HTTP <strong>204</strong>.
+</p>
+
+<hr>
+
+<h2>5. maj_fusion_cli.php – Fusion des flux par catégories</h2>
+
+<p>
+Le script <strong>maj_fusion_cli.php</strong> fusionne les flux déjà parsés par <code>maj_cli.php</code>.
+</p>
+
+<h3>5.1 Initialisation</h3>
+
+<ul>
+<li>création du fichier <code>maj_fusion_tempo</code> ;</li>
+<li>pause aléatoire (15–25 secondes) pour éviter les collisions ;</li>
+<li>chargement des modules :
+  <ul>
+    <li><code>job.php</code></li>
+    <li><code>fusion_rss.php</code></li>
+  </ul>
+</li>
+<li>génération d’un <code>$max</code> aléatoire (20–40 items).</li>
+</ul>
+
+<h3>5.2 Liste des fusions</h3>
+
+<p>
+Chaque fusion regroupe les flux d’une catégorie :
+</p>
+
+<ul>
+<li>Réalité virtuelle</li>
+<li>Linux</li>
+<li>Technologie (FR / autres / english)</li>
+<li>Apple (FR / autres / english)</li>
+<li>Jeux (FR / autres / english)</li>
+<li>Sciences (FR / autres / english)</li>
+<li>Infos France</li>
+<li>Infos Monde</li>
+<li>Insolites</li>
+<li>Cinéma / TV</li>
+<li>Sports</li>
+<li>Infos English</li>
+</ul>
+
+<p>
+Chaque job appelle :
+</p>
+
+<pre><code>fusion_rss($titre, $prefixe, $min, $max)</code></pre>
+
+<h3>5.3 Exécution</h3>
+
+<ul>
+<li>mélange aléatoire (<code>shuffle()</code>) ;</li>
+<li>exécution via <code>job_call('fusion_rss')</code> ;</li>
+<li>génération des flux fusionnés prêts pour l’affichage HTML.</li>
+</ul>
+
+<hr>
+
+<h2>6. Intégration avec les pages HTML</h2>
+
+<p>
+Les pages HTML d’iActu peuvent déclencher automatiquement les mises à jour si :
+</p>
+
+<ul>
+<li>le cache est trop ancien ;</li>
+<li>le fichier du jour n’existe pas ;</li>
+<li>le contenu généré est incomplet ;</li>
+<li>les crons ne se sont pas exécutés.</li>
+</ul>
+
+<p>
+Le mécanisme repose sur :
+</p>
+
+<ul>
+<li><strong>minute_pair</strong> – rafraîchissement toutes les 2 minutes ;</li>
+<li><strong>lock</strong> – empêche les exécutions simultanées ;</li>
+<li><strong>tempo_maj</strong> et <strong>tempo_fusion</strong> – évitent les rafales ;</li>
+<li><strong>exec("php maj.php &")</strong> – lancement en arrière‑plan.</li>
+</ul>
+
+<p>
+Les pages HTML valident également :
+</p>
+
+<ul>
+<li>la présence du DOCTYPE ;</li>
+<li>la présence des blocs <code>news-box</code> ;</li>
+<li>la présence des blocs <code>class="n"</code> ;</li>
+<li>la taille minimale du contenu.</li>
+</ul>
+
+<hr>
+
+<h2>7. Mécanismes de stabilité</h2>
+
+<p>
+Le système de mise à jour V18 intègre plusieurs mécanismes de stabilité :
+</p>
+
+<ul>
+<li><strong>tempo</strong> – limite la fréquence d’exécution ;</li>
+<li><strong>locks</strong> – évite les exécutions concurrentes ;</li>
+<li><strong>shuffle</strong> – répartit la charge ;</li>
+<li><strong>sleep aléatoire</strong> – évite les collisions ;</li>
+<li><strong>écriture atomique</strong> – fichiers .tmp puis rename ;</li>
+<li><strong>fallback automatique</strong> via les pages HTML ;</li>
+<li><strong>TTL</strong> – rafraîchissement contrôlé des flux.</li>
+</ul>
+
+<hr>
+
+<h2>8. Conclusion</h2>
+
+<p>
+Le système de mise à jour d’iActu V18 est conçu pour être :
+</p>
+
+<ul>
+<li>robuste ;</li>
+<li>tolérant aux erreurs ;</li>
+<li>auto‑stabilisant ;</li>
+<li>compatible avec les crons et le fallback HTTP ;</li>
+<li>capable de traiter un grand nombre de flux sans surcharge.</li>
+</ul>
+
+<p>
+Il constitue l’infrastructure essentielle sur laquelle reposent les pages HTML quotidiennes d’iActu.
+</p>
+
+</body>
+</html>
