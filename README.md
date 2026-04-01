@@ -83,12 +83,19 @@ Fondation/
 
 🛡️ Sécurité & robustesse
 UTF‑8 strict
+
 LF uniquement
+
 Base64 pour les données
+
 header ASCII
+
 écriture atomique
+
 locks physiques simples
+
 nettoyage automatique
+
 marqueur final ⟪⇒¦⇐⟫
 
 📜 Objectif
