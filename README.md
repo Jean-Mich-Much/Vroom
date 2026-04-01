@@ -63,7 +63,6 @@ delete('post', $id);
 begin();
 create('log', ['msg' => 'A']);
 commit();
-<br>
 
 📂 Structure du projet
 Vroom.php
@@ -82,16 +81,21 @@ Fondation/
          ├── Vroom_job.php
          └── Vroom_relations.php
 
----
-
 🛡️ Sécurité & robustesse
 UTF‑8 strict
+
 LF uniquement
+
 Base64 pour les données
+
 header ASCII
+
 écriture atomique
+
 locks physiques simples
+
 nettoyage automatique
+
 marqueur final ⟪⇒¦⇐⟫
 
 📜 Objectif
@@ -101,3 +105,5 @@ Il propose une alternative ultra‑simple, ultra‑fiable et ultra‑performante
 👤 Auteur
 Jean‑Michel G — Bordeaux, France
 iactu.info — depuis 2003
+
+
