@@ -63,6 +63,7 @@ delete('post', $id);
 begin();
 create('log', ['msg' => 'A']);
 commit();
+<br>
 
 📂 Structure du projet
 Vroom.php
