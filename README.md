@@ -63,8 +63,7 @@ delete('post', $id);
 begin();
 create('log', ['msg' => 'A']);
 commit();
-
----
+```
 
 ## 📂 Structure du projet
 
@@ -106,4 +105,3 @@ Il propose une alternative **ultra‑simple**, **ultra‑fiable** et **ultra‑p
 
 Jean‑Michel G — Bordeaux, France  
 iactu.info — depuis 2003
-
