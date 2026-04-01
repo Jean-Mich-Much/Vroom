@@ -64,7 +64,7 @@ begin();
 create('log', ['msg'=>'A']);
 commit();```
 
-## 📂 Structure du projet
+📂 Structure du projet
 ```Vroom.php
 Fondation/
  └── vroom/
@@ -81,7 +81,7 @@ Fondation/
          ├── Vroom_job.php
          └── Vroom_relations.php```
 
-## 🛡️ Sécurité & robustesse
+🛡️ Sécurité & robustesse
 UTF‑8 strict
 LF uniquement
 Base64 pour les données
@@ -91,10 +91,10 @@ locks physiques simples
 nettoyage automatique
 marqueur final ⟪⇒¦⇐⟫
 
-## 📜 Objectif
+📜 Objectif
 Vroom ne cherche pas à remplacer une base SQL complète.
 Il propose une alternative ultra‑simple, ultra‑fiable et ultra‑performante pour les projets qui veulent aller vite, rester légers, et garder le contrôle total sur leurs données.
 
-## 👤 Auteur
+👤 Auteur
 Jean‑Michel G — Bordeaux, France
 iactu.info — depuis 2003
