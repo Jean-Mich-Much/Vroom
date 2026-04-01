@@ -64,7 +64,11 @@ begin();
 create('log', ['msg' => 'A']);
 commit();
 
-📂 Structure du projet
+---
+
+## 📂 Structure du projet
+
+```text
 Vroom.php
 Fondation/
  └── vroom/
@@ -80,30 +84,26 @@ Fondation/
          ├── Vroom_exec.php
          ├── Vroom_job.php
          └── Vroom_relations.php
+```
 
-🛡️ Sécurité & robustesse
-UTF‑8 strict
+## 🛡️ Sécurité & robustesse
 
-LF uniquement
+- UTF‑8 strict  
+- LF uniquement  
+- Base64 pour les données  
+- header ASCII  
+- écriture atomique  
+- locks physiques simples  
+- nettoyage automatique  
+- marqueur final `⟪⇒¦⇐⟫`
 
-Base64 pour les données
+## 📜 Objectif
 
-header ASCII
+Vroom ne cherche pas à remplacer une base SQL complète.  
+Il propose une alternative **ultra‑simple**, **ultra‑fiable** et **ultra‑performante** pour les projets qui veulent aller vite, rester légers, et garder le contrôle total sur leurs données.
 
-écriture atomique
+## 👤 Auteur
 
-locks physiques simples
-
-nettoyage automatique
-
-marqueur final ⟪⇒¦⇐⟫
-
-📜 Objectif
-Vroom ne cherche pas à remplacer une base SQL complète.
-Il propose une alternative ultra‑simple, ultra‑fiable et ultra‑performante pour les projets qui veulent aller vite, rester légers, et garder le contrôle total sur leurs données.
-
-👤 Auteur
-Jean‑Michel G — Bordeaux, France
+Jean‑Michel G — Bordeaux, France  
 iactu.info — depuis 2003
-
 
